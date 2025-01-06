@@ -3,8 +3,12 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
+#include <chrono> // برای محاسبه زمان
 
 using namespace std;
+using namespace std::chrono; // استفاده از کلاس‌های زمان
+// متغیرهای زمان‌بندی
+steady_clock::time_point gameStartTime, gameEndTime;
 
 // انواع عناصر بازی
 enum class TileType
@@ -273,6 +277,24 @@ void showScoreboard()
     else
     {
         cout << "No scores available.\n";
+    }
+}
+
+// محاسبه امتیاز
+void calculateScore()
+{
+    double elapsedTime = duration_cast<seconds>(gameEndTime - gameStartTime).count(); // زمان سپری‌شده
+    const double WT = 0.5, WM = 0.3, WB = 0.2;                                        // ضرایب وزن
+    score = static_cast<int>(1000 / (1 + WT * elapsedTime + WM * moves + WB * bombsUsed));
+    cout << "Game Over!\n";
+    cout << "Your score: " << score << endl;
+
+    // ذخیره امتیاز در فایل
+    ofstream outFile("scoreboard.txt", ios::app);
+    if (outFile.is_open())
+    {
+        outFile << playerName << ": " << score << endl;
+        outFile.close();
     }
 }
 
