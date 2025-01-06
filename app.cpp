@@ -101,6 +101,49 @@ void printBoard()
         cout << endl;
     }
 }
+
+// ساختار بمب
+struct Bomb
+{
+    int x, y;
+    int remainingMoves;
+
+    Bomb(int x, int y) : x(x), y(y), remainingMoves(2) {}
+
+    void move()
+    {
+        if (remainingMoves > 0)
+        {
+            remainingMoves--;
+        }
+        if (remainingMoves == 0)
+        {
+            explode();
+        }
+    }
+
+    void explode()
+    {
+        cout << "Bomb exploded at (" << x << ", " << y << ")" << endl;
+        for (int i = -explosionRadius; i <= explosionRadius; i++)
+        {
+            for (int j = -explosionRadius; j <= explosionRadius; j++)
+            {
+                int nx = x + i, ny = y + j;
+                if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE)
+                {
+                    if (board[ny][nx] == BRICK || board[ny][nx] == ENEMY)
+                    {
+                        board[ny][nx] = EMPTY;
+                    }
+                }
+            }
+        }
+    }
+};
+
+vector<Bomb> bombs;
+
 // تابع تولید عناصر بازی
 void generateGameElements()
 {
@@ -258,6 +301,8 @@ void showScoreboard()
         cout << "No scores available.\n";
     }
 }
+
+
 
 int main()
 {
