@@ -191,10 +191,28 @@ void printPlayerStats()
     cout << "Player: " << playerName << " | Score: " << score << " | Moves: " << moves << endl;
 }
 
+// تابع منوی بازی
+void showMenu()
+{
+    const char *menuItems[] = {
+        "Start Game",
+        "Load Game",
+        "Set Difficulty",
+        "Guide",
+        "Scoreboard",
+        "Exit"};
+    const int menuSize = sizeof(menuItems) / sizeof(menuItems[0]);
+
+    cout << "\nMenu Options:\n";
+    for (int i = 0; i < menuSize; ++i)
+    {
+        cout << i + 1 << ". " << menuItems[i] << "\n";
+    }
+    cout << "Enter your choice: ";
+}
+
 int main()
 {
-    cout << "Welcome to this game..." << endl;
-
     // درخواست نام بازیکن
     getPlayerName();
 
@@ -210,10 +228,12 @@ int main()
     // تولید عناصر بازی
     generateGameElements();
     // تابع برای ذخیره بازی
-    void saveGame();
+    saveGame();
 
     // تابع برای بارگذاری بازی
-    void loadGame();
+    loadGame();
+    printPlayerStats();
+    showMenu();
 
     return 0;
 }
