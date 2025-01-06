@@ -161,6 +161,31 @@ void saveGame()
     }
 }
 
+// تابع برای بارگذاری بازی
+void loadGame()
+{
+    ifstream inFile("savegame.txt");
+    if (inFile.is_open())
+    {
+        inFile >> playerX >> playerY >> moves >> score;
+        for (int i = 0; i < BOARD_SIZE; ++i)
+        {
+            for (int j = 0; j < BOARD_SIZE; ++j)
+            {
+                int tile;
+                inFile >> tile;
+                board[i][j] = static_cast<TileType>(tile);
+            }
+        }
+        inFile.close();
+        cout << "Game loaded successfully!" << endl;
+    }
+    else
+    {
+        cout << "No saved game found." << endl;
+    }
+}
+
 int main()
 {
     cout << "Welcome to this game..." << endl;
