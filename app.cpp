@@ -302,7 +302,31 @@ void showScoreboard()
     }
 }
 
-
+// اجرای بازی
+void startGame()
+{
+    generateGameElements();
+    while (isRunning)
+    {
+        printBoard();
+        cout << "Enter command (WASD to move, B to place bomb, Q to quit): ";
+        char command;
+        cin >> command;
+        if (command == 'Q')
+        {
+            isRunning = false;
+        }
+        else if (command == 'B')
+        {
+            bombs.push_back(Bomb(playerX, playerY));
+            bombsUsed++;
+        }
+        else
+        {
+            movePlayer(command);
+        }
+    }
+}
 
 int main()
 {
