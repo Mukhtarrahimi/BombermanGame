@@ -41,7 +41,7 @@ SkillType currentSkill = SkillType::None;
 int explosionRadius = 1;
 std::string playerName;
 
-// تابع برای تعریف ایجاد تخته بازی 
+// تابع برای تعریف ایجاد تخته بازی
 void initializeBoard()
 {
     for (int i = 0; i < BOARD_SIZE; ++i)
@@ -67,8 +67,58 @@ void placePlayer()
     board[playerX][playerY] = TileType::Player;
 }
 
+// تابع برای چاپ تخته بازی
+void printBoard()
+{
+    for (int y = 0; y < BOARD_SIZE; y++)
+    {
+        for (int x = 0; x < BOARD_SIZE; x++)
+        {
+            switch (board[y][x])
+            {
+            case TileType::Empty:
+                cout << " . ";
+                break;
+            case TileType::Concrete:
+                cout << " XX ";
+                break;
+            case TileType::Brick:
+                cout << " -_ ";
+                break;
+            case TileType::Player:
+                cout << " SS ";
+                break;
+            case TileType::Enemy:
+                cout << " EE ";
+                break;
+            case TileType::Exit:
+                cout << " <> ";
+                break;
+            case TileType::Bomb:
+                cout << " Bo ";
+                break;
+            }
+        }
+        cout << endl;
+    }
+}
+
+
 int main()
 {
-    cout << "wellcome to this game...";
+    cout << "Welcome to this game..." << endl;
+
+    // درخواست نام بازیکن
+    getPlayerName();
+
+    // مقداردهی اولیه تخته
+    initializeBoard();
+
+    // قرار دادن بازیکن در ابتدا
+    placePlayer();
+
+    // چاپ وضعیت تخته
+    printBoard();
+
     return 0;
 }
