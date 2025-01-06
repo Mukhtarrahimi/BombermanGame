@@ -29,6 +29,16 @@ enum class SkillType
     ExplosionRadius
 };
 
+// متغیرهای درجه سختی
+enum class Difficulty
+{
+    Easy,
+    Medium,
+    Hard
+};
+
+Difficulty currentDifficulty = Difficulty::Medium;
+
 // ثابت‌های بازی
 const int BOARD_SIZE = 10;
 const int MAX_BOMBS = 10;
@@ -298,9 +308,11 @@ void calculateScore()
     }
 }
 
-// اجرای بازی
+// شروع بازی: ثبت زمان شروع
 void startGame()
 {
+    gameStartTime = steady_clock::now(); // ثبت زمان شروع بازی
+
     initializeBoard();
     generateGameElements();
     while (isRunning)
@@ -331,12 +343,25 @@ void startGame()
             movePlayer(command);
         }
 
-        // Update bombs
+        // به‌روزرسانی بمب‌ها
         for (int i = 0; i < bombCount; i++)
         {
             bombs[i].move();
         }
+
+        // بررسی شرایط اتمام بازی (مثلاً رسیدن به درب خروج)
+        if (board[playerY][playerX] == TileType::Exit)
+        {
+            cout << "Congratulations! You reached the exit.\n";
+            isRunning = false;
+        }
     }
+
+    // ثبت زمان پایان بازی
+    gameEndTime = steady_clock::now();
+
+    // محاسبه امتیاز
+    calculateScore();
 }
 
 // برنامه اصلی
