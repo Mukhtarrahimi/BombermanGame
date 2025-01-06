@@ -220,6 +220,26 @@ void showGuide()
     cout << "Team: Your Team Name\n";
 }
 
+// تنظیم درجه سختی
+void setDifficulty()
+{
+    cout << "Choose Difficulty:\n1. Easy\n2. Medium\n3. Hard\n";
+    int choice;
+    cin >> choice;
+    if (choice == 1)
+    {
+        cout << "Easy selected.\n";
+    }
+    else if (choice == 2)
+    {
+        cout << "Medium selected.\n";
+    }
+    else if (choice == 3)
+    {
+        cout << "Hard selected.\n";
+    }
+}
+
 int main()
 {
     // درخواست نام بازیکن
