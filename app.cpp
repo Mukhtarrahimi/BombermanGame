@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 #include <string>
 #include <fstream>
 #include <cstdlib>
@@ -102,7 +101,30 @@ void printBoard()
         cout << endl;
     }
 }
+// تابع تولید عناصر بازی
+void generateGameElements()
+{
+    srand(time(0));
+    for (int i = 0; i < BOARD_SIZE / 2; i++)
+    {
+        int x = rand() % BOARD_SIZE;
+        int y = rand() % BOARD_SIZE;
+        if (board[y][x] == TileType::Empty)
+            board[y][x] = TileType::Brick;
 
+        x = rand() % BOARD_SIZE;
+        y = rand() % BOARD_SIZE;
+        if (board[y][x] == TileType::Empty)
+            board[y][x] = TileType::Enemy;
+
+        x = rand() % BOARD_SIZE;
+        y = rand() % BOARD_SIZE;
+        if (board[y][x] == TileType::Empty)
+            board[y][x] = TileType::Concrete;
+    }
+    board[BOARD_SIZE - 1][BOARD_SIZE - 1] = TileType::Exit;
+    board[playerY][playerX] = TileType::Player;
+}
 
 int main()
 {
@@ -119,6 +141,9 @@ int main()
 
     // چاپ وضعیت تخته
     printBoard();
+
+    // تولید عناصر بازی
+    generateGameElements();
 
     return 0;
 }
