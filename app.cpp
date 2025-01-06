@@ -60,7 +60,7 @@ struct Bomb
     int x, y;
     int remainingMoves;
 
-    Bomb() : x(-1), y(-1), remainingMoves(0) {}
+    Bomb() : x(-1), y(-1), remainingMoves(0) {} // مکان پیش فرض بمب خارج از صفه
 
     Bomb(int x, int y) : x(x), y(y), remainingMoves(2) {}
 
@@ -259,53 +259,77 @@ void setDifficulty()
     cin >> choice;
     if (choice == 1)
     {
+        currentDifficulty = Difficulty::Easy;
         cout << "Easy selected.\n";
     }
     else if (choice == 2)
     {
+        currentDifficulty = Difficulty::Medium;
         cout << "Medium selected.\n";
     }
     else if (choice == 3)
     {
+        currentDifficulty = Difficulty::Hard;
         cout << "Hard selected.\n";
     }
 }
 
-// جدول امتیازات
-void showScoreboard()
+// تنظیم اندازه صفحه و تعداد عناصر بر اساس درجه سختی
+void adjustGameForDifficulty()
 {
-    ifstream inFile("scoreboard.txt");
-    if (inFile.is_open())
+    switch (currentDifficulty)
     {
-        string line;
-        while (getline(inFile, line))
-        {
-            cout << line << endl;
-        }
-        inFile.close();
+    case Difficulty::Easy:
+        cout << "Setting up game for Easy difficulty.\n";
+        break;
+    case Difficulty::Medium:
+        cout << "Setting up game for Medium difficulty.\n";
+        break;
+    case Difficulty::Hard:
+        cout << "Setting up game for Hard difficulty.\n";
+        break;
     }
-    else
-    {
-        cout << "No scores available.\n";
-    }
-}
 
-// محاسبه امتیاز
-void calculateScore()
-{
-    double elapsedTime = duration_cast<seconds>(gameEndTime - gameStartTime).count(); // زمان سپری‌شده
-    const double WT = 0.5, WM = 0.3, WB = 0.2;                                        // ضرایب وزن
-    score = static_cast<int>(1000 / (1 + WT * elapsedTime + WM * moves + WB * bombsUsed));
-    cout << "Game Over!\n";
-    cout << "Your score: " << score << endl;
+    // بازسازی صفحه بازی با تنظیمات جدید
+    initializeBoard();
 
-    // ذخیره امتیاز در فایل
-    ofstream outFile("scoreboard.txt", ios::app);
-    if (outFile.is_open())
+    // تنظیم تعداد دشمنان و بلوک‌ها
+    int enemyCount, brickCount;
+    if (currentDifficulty == Difficulty::Easy)
     {
-        outFile << playerName << ": " << score << endl;
-        outFile.close();
+        enemyCount = 3;
+        brickCount = 5;
     }
+    else if (currentDifficulty == Difficulty::Medium)
+    {
+        enemyCount = 5;
+        brickCount = 8;
+    }
+    else // Hard
+    {
+        enemyCount = 8;
+        brickCount = 12;
+    }
+
+    // تولید عناصر بازی با تنظیمات جدید
+    srand(time(0));
+    for (int i = 0; i < brickCount; i++)
+    {
+        int x = rand() % BOARD_SIZE;
+        int y = rand() % BOARD_SIZE;
+        if (board[y][x] == TileType::Empty)
+            board[y][x] = TileType::Brick;
+    }
+    for (int i = 0; i < enemyCount; i++)
+    {
+        int x = rand() % BOARD_SIZE;
+        int y = rand() % BOARD_SIZE;
+        if (board[y][x] == TileType::Empty)
+            board[y][x] = TileType::Enemy;
+    }
+
+    board[BOARD_SIZE - 1][BOARD_SIZE - 1] = TileType::Exit;
+    board[playerY][playerX] = TileType::Player;
 }
 
 // شروع بازی: ثبت زمان شروع
@@ -362,6 +386,43 @@ void startGame()
 
     // محاسبه امتیاز
     calculateScore();
+}
+
+// محاسبه امتیاز
+void calculateScore()
+{
+    double elapsedTime = duration_cast<seconds>(gameEndTime - gameStartTime).count(); // زمان سپری‌شده
+    const double WT = 0.5, WM = 0.3, WB = 0.2;                                        // ضرایب وزن
+    score = static_cast<int>(1000 / (1 + WT * elapsedTime + WM * moves + WB * bombsUsed));
+    cout << "Game Over!\n";
+    cout << "Your score: " << score << endl;
+
+    // ذخیره امتیاز در فایل
+    ofstream outFile("scoreboard.txt", ios::app);
+    if (outFile.is_open())
+    {
+        outFile << playerName << ": " << score << endl;
+        outFile.close();
+    }
+}
+
+// جدول امتیازات
+void showScoreboard()
+{
+    ifstream inFile("scoreboard.txt");
+    if (inFile.is_open())
+    {
+        string line;
+        while (getline(inFile, line))
+        {
+            cout << line << endl;
+        }
+        inFile.close();
+    }
+    else
+    {
+        cout << "No scores available.\n";
+    }
 }
 
 // برنامه اصلی
