@@ -240,6 +240,25 @@ void setDifficulty()
     }
 }
 
+// جدول امتیازات
+void showScoreboard()
+{
+    ifstream inFile("scoreboard.txt");
+    if (inFile.is_open())
+    {
+        string line;
+        while (getline(inFile, line))
+        {
+            cout << line << endl;
+        }
+        inFile.close();
+    }
+    else
+    {
+        cout << "No scores available.\n";
+    }
+}
+
 int main()
 {
     // درخواست نام بازیکن
