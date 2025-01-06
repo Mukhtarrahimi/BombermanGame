@@ -3,11 +3,11 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
+#include <vector>
 
 using namespace std;
 
-// عناصر مورد نیاز بازی
-
+// انواع عناصر بازی
 enum class TileType
 {
     Empty,
@@ -18,6 +18,7 @@ enum class TileType
     Exit,
     Bomb
 };
+
 enum class SkillType
 {
     None,
@@ -25,48 +26,75 @@ enum class SkillType
     ExplosionRadius
 };
 
+// ثابت‌های بازی
 const int BOARD_SIZE = 10;
 
-TileType board[BOARD_SIZE][BOARD_SIZE]; // ساخت ارایه برای تخته بازی
-
+// متغیرهای عمومی
+TileType board[BOARD_SIZE][BOARD_SIZE];
 int playerX = 0, playerY = 0;
-
 int score = 0;
 int moves = 0;
 int bombsUsed = 0;
-
 bool isRunning = true;
 SkillType currentSkill = SkillType::None;
 int explosionRadius = 1;
-std::string playerName;
+string playerName;
 
-// تابع برای تعریف ایجاد تخته بازی
+// ساختار بمب
+struct Bomb
+{
+    int x, y;
+    int remainingMoves;
+
+    Bomb(int x, int y) : x(x), y(y), remainingMoves(2) {}
+
+    void move()
+    {
+        if (remainingMoves > 0)
+        {
+            remainingMoves--;
+        }
+        if (remainingMoves == 0)
+        {
+            explode();
+        }
+    }
+
+    void explode()
+    {
+        cout << "Bomb exploded at (" << x << ", " << y << ")" << endl;
+        for (int i = -explosionRadius; i <= explosionRadius; i++)
+        {
+            for (int j = -explosionRadius; j <= explosionRadius; j++)
+            {
+                int nx = x + i, ny = y + j;
+                if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE)
+                {
+                    if (board[ny][nx] == TileType::Brick || board[ny][nx] == TileType::Enemy)
+                    {
+                        board[ny][nx] = TileType::Empty;
+                    }
+                }
+            }
+        }
+    }
+};
+
+vector<Bomb> bombs;
+
+// مقداردهی اولیه صفحه بازی
 void initializeBoard()
 {
-    for (int i = 0; i < BOARD_SIZE; ++i)
+    for (int y = 0; y < BOARD_SIZE; y++)
     {
-        for (int j = 0; j < BOARD_SIZE; ++j)
+        for (int x = 0; x < BOARD_SIZE; x++)
         {
-            board[i][j] = TileType::Empty;
+            board[y][x] = TileType::Empty;
         }
     }
 }
 
-// تابع برای نام بازیکن
-void getPlayerName()
-{
-    cout << "Enter your name: ";
-    cin >> playerName;
-    cout << "Welcome, " << playerName << "!" << endl;
-}
-
-// تابع قرار دادن بازیکن روی تخته
-void placePlayer()
-{
-    board[playerX][playerY] = TileType::Player;
-}
-
-// تابع برای چاپ تخته بازی
+// نمایش صفحه بازی
 void printBoard()
 {
     for (int y = 0; y < BOARD_SIZE; y++)
@@ -102,49 +130,7 @@ void printBoard()
     }
 }
 
-// ساختار بمب
-struct Bomb
-{
-    int x, y;
-    int remainingMoves;
-
-    Bomb(int x, int y) : x(x), y(y), remainingMoves(2) {}
-
-    void move()
-    {
-        if (remainingMoves > 0)
-        {
-            remainingMoves--;
-        }
-        if (remainingMoves == 0)
-        {
-            explode();
-        }
-    }
-
-    void explode()
-    {
-        cout << "Bomb exploded at (" << x << ", " << y << ")" << endl;
-        for (int i = -explosionRadius; i <= explosionRadius; i++)
-        {
-            for (int j = -explosionRadius; j <= explosionRadius; j++)
-            {
-                int nx = x + i, ny = y + j;
-                if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE)
-                {
-                    if (board[ny][nx] == BRICK || board[ny][nx] == ENEMY)
-                    {
-                        board[ny][nx] = EMPTY;
-                    }
-                }
-            }
-        }
-    }
-};
-
-vector<Bomb> bombs;
-
-// تابع تولید عناصر بازی
+// تولید عناصر بازی
 void generateGameElements()
 {
     srand(time(0));
@@ -169,7 +155,54 @@ void generateGameElements()
     board[playerY][playerX] = TileType::Player;
 }
 
-// تابع برای حرکت
+// ذخیره بازی
+void saveGame(const string &filename)
+{
+    ofstream outFile(filename);
+    if (outFile.is_open())
+    {
+        outFile << playerX << " " << playerY << endl;
+        outFile << score << " " << moves << " " << bombsUsed << endl;
+        for (int y = 0; y < BOARD_SIZE; y++)
+        {
+            for (int x = 0; x < BOARD_SIZE; x++)
+            {
+                outFile << static_cast<int>(board[y][x]) << " ";
+            }
+            outFile << endl;
+        }
+        outFile.close();
+        cout << "Game saved successfully!" << endl;
+    }
+}
+
+// بارگذاری بازی
+void loadGame(const string &filename)
+{
+    ifstream inFile(filename);
+    if (inFile.is_open())
+    {
+        inFile >> playerX >> playerY;
+        inFile >> score >> moves >> bombsUsed;
+        for (int y = 0; y < BOARD_SIZE; y++)
+        {
+            for (int x = 0; x < BOARD_SIZE; x++)
+            {
+                int temp;
+                inFile >> temp;
+                board[y][x] = static_cast<TileType>(temp);
+            }
+        }
+        inFile.close();
+        cout << "Game loaded successfully!" << endl;
+    }
+    else
+    {
+        cout << "Failed to load the game. File not found." << endl;
+    }
+}
+
+// حرکت بازیکن
 void movePlayer(char direction)
 {
     board[playerY][playerX] = TileType::Empty;
@@ -184,73 +217,11 @@ void movePlayer(char direction)
     board[playerY][playerX] = TileType::Player;
     moves++;
 }
-// تابع برای ذخیره بازی
-void saveGame()
-{
-    ofstream outFile("savegame.txt");
-    if (outFile.is_open())
-    {
-        outFile << playerX << " " << playerY << " " << moves << " " << score << endl;
-        for (int i = 0; i < BOARD_SIZE; ++i)
-        {
-            for (int j = 0; j < BOARD_SIZE; ++j)
-            {
-                outFile << static_cast<int>(board[i][j]) << " ";
-            }
-            outFile << endl;
-        }
-        outFile.close();
-        cout << "Game saved successfully!" << endl;
-    }
-}
 
-// تابع برای بارگذاری بازی
-void loadGame()
-{
-    ifstream inFile("savegame.txt");
-    if (inFile.is_open())
-    {
-        inFile >> playerX >> playerY >> moves >> score;
-        for (int i = 0; i < BOARD_SIZE; ++i)
-        {
-            for (int j = 0; j < BOARD_SIZE; ++j)
-            {
-                int tile;
-                inFile >> tile;
-                board[i][j] = static_cast<TileType>(tile);
-            }
-        }
-        inFile.close();
-        cout << "Game loaded successfully!" << endl;
-    }
-    else
-    {
-        cout << "No saved game found." << endl;
-    }
-}
-// چاپ وضعیت بازیکن بعد از هر حرکت
-void printPlayerStats()
-{
-    cout << "Player: " << playerName << " | Score: " << score << " | Moves: " << moves << endl;
-}
-
-// تابع منوی بازی
+// منوی اصلی
 void showMenu()
 {
-    const char *menuItems[] = {
-        "Start Game",
-        "Load Game",
-        "Set Difficulty",
-        "Guide",
-        "Scoreboard",
-        "Exit"};
-    const int menuSize = sizeof(menuItems) / sizeof(menuItems[0]);
-
-    cout << "\nMenu Options:\n";
-    for (int i = 0; i < menuSize; ++i)
-    {
-        cout << i + 1 << ". " << menuItems[i] << "\n";
-    }
+    cout << "\n1. Start Game\n2. Load Game\n3. Set Difficulty\n4. Guide\n5. Scoreboard\n6. Exit\n";
     cout << "Enter your choice: ";
 }
 
@@ -305,6 +276,7 @@ void showScoreboard()
 // اجرای بازی
 void startGame()
 {
+    initializeBoard();
     generateGameElements();
     while (isRunning)
     {
@@ -328,33 +300,34 @@ void startGame()
     }
 }
 
+// برنامه اصلی
 int main()
 {
-    // درخواست نام بازیکن
-    getPlayerName();
-
-    // مقداردهی اولیه تخته
-    initializeBoard();
-
-    // قرار دادن بازیکن در ابتدا
-    placePlayer();
-
-    // چاپ وضعیت تخته
-    printBoard();
-
-    // تولید عناصر بازی
-    generateGameElements();
-    // تابع برای ذخیره بازی
-    saveGame();
-
-    // تابع برای بارگذاری بازی
-    loadGame();
-    // وضعیت بازیکن
-    printPlayerStats();
-    // مینوی اصلی
-    showMenu();
-    // راهنمای بازی
-    showGuide();
-
+    while (true)
+    {
+        showMenu();
+        int choice;
+        cin >> choice;
+        switch (choice)
+        {
+        case 1:
+            startGame();
+            break;
+        case 2:
+            loadGame("savegame.txt");
+            break;
+        case 3:
+            setDifficulty();
+            break;
+        case 4:
+            showGuide();
+            break;
+        case 5:
+            showScoreboard();
+            break;
+        case 6:
+            return 0;
+        }
+    }
     return 0;
 }
