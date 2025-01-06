@@ -141,6 +141,25 @@ void movePlayer(char direction)
     board[playerY][playerX] = TileType::Player;
     moves++;
 }
+// تابع برای ذخیره بازی
+void saveGame()
+{
+    ofstream outFile("savegame.txt");
+    if (outFile.is_open())
+    {
+        outFile << playerX << " " << playerY << " " << moves << " " << score << endl;
+        for (int i = 0; i < BOARD_SIZE; ++i)
+        {
+            for (int j = 0; j < BOARD_SIZE; ++j)
+            {
+                outFile << static_cast<int>(board[i][j]) << " ";
+            }
+            outFile << endl;
+        }
+        outFile.close();
+        cout << "Game saved successfully!" << endl;
+    }
+}
 
 int main()
 {
