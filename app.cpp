@@ -3,7 +3,6 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
-#include <vector>
 
 using namespace std;
 
@@ -28,6 +27,7 @@ enum class SkillType
 
 // ثابت‌های بازی
 const int BOARD_SIZE = 10;
+const int MAX_BOMBS = 10;
 
 // متغیرهای عمومی
 TileType board[BOARD_SIZE][BOARD_SIZE];
@@ -45,6 +45,8 @@ struct Bomb
 {
     int x, y;
     int remainingMoves;
+
+    Bomb() : x(-1), y(-1), remainingMoves(0) {}
 
     Bomb(int x, int y) : x(x), y(y), remainingMoves(2) {}
 
@@ -80,7 +82,8 @@ struct Bomb
     }
 };
 
-vector<Bomb> bombs;
+Bomb bombs[MAX_BOMBS];
+int bombCount = 0;
 
 // مقداردهی اولیه صفحه بازی
 void initializeBoard()
@@ -290,12 +293,26 @@ void startGame()
         }
         else if (command == 'B')
         {
-            bombs.push_back(Bomb(playerX, playerY));
-            bombsUsed++;
+            if (bombCount < MAX_BOMBS)
+            {
+                bombs[bombCount] = Bomb(playerX, playerY);
+                bombCount++;
+                bombsUsed++;
+            }
+            else
+            {
+                cout << "Maximum number of bombs reached!\n";
+            }
         }
         else
         {
             movePlayer(command);
+        }
+
+        // Update bombs
+        for (int i = 0; i < bombCount; i++)
+        {
+            bombs[i].move();
         }
     }
 }
