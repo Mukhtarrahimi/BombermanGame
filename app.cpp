@@ -185,6 +185,11 @@ void loadGame()
         cout << "No saved game found." << endl;
     }
 }
+// چاپ وضعیت بازیکن بعد از هر حرکت
+void printPlayerStats()
+{
+    cout << "Player: " << playerName << " | Score: " << score << " | Moves: " << moves << endl;
+}
 
 int main()
 {
@@ -204,6 +209,11 @@ int main()
 
     // تولید عناصر بازی
     generateGameElements();
+    // تابع برای ذخیره بازی
+    void saveGame();
+
+    // تابع برای بارگذاری بازی
+    void loadGame();
 
     return 0;
 }
