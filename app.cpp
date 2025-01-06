@@ -30,24 +30,18 @@ const int BOARD_SIZE = 10;
 
 TileType board[BOARD_SIZE][BOARD_SIZE]; // ساخت ارایه برای تخته بازی
 
-// موقعیت بازیکن
 int playerX = 0, playerY = 0;
 
-// امتیاز بازی و تعداد حرکت‌ها
 int score = 0;
 int moves = 0;
 int bombsUsed = 0;
 
-// وضعیت اجرای بازی
 bool isRunning = true;
-
 SkillType currentSkill = SkillType::None;
-
-// شعاع انفجار بمب‌ها
 int explosionRadius = 1;
-
 std::string playerName;
 
+// تابع برای تعریف ایجاد تخته بازی 
 void initializeBoard()
 {
     for (int i = 0; i < BOARD_SIZE; ++i)
@@ -58,6 +52,21 @@ void initializeBoard()
         }
     }
 }
+
+// تابع برای نام بازیکن
+void getPlayerName()
+{
+    cout << "Enter your name: ";
+    cin >> playerName;
+    cout << "Welcome, " << playerName << "!" << endl;
+}
+
+// تابع قرار دادن بازیکن روی تخته
+void placePlayer()
+{
+    board[playerX][playerY] = TileType::Player;
+}
+
 int main()
 {
     cout << "wellcome to this game...";
