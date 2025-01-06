@@ -211,6 +211,15 @@ void showMenu()
     cout << "Enter your choice: ";
 }
 
+// راهنمای بازی
+void showGuide()
+{
+    cout << "Welcome to the game!\n";
+    cout << "Move with W, A, S, D.\nPlace bombs with B.\n";
+    cout << "Reach the exit to win.\n";
+    cout << "Team: Your Team Name\n";
+}
+
 int main()
 {
     // درخواست نام بازیکن
@@ -232,8 +241,12 @@ int main()
 
     // تابع برای بارگذاری بازی
     loadGame();
+    // وضعیت بازیکن
     printPlayerStats();
+    // مینوی اصلی
     showMenu();
+    // راهنمای بازی
+    showGuide();
 
     return 0;
 }
