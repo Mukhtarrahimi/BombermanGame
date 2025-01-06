@@ -126,6 +126,22 @@ void generateGameElements()
     board[playerY][playerX] = TileType::Player;
 }
 
+// تابع برای حرکت
+void movePlayer(char direction)
+{
+    board[playerY][playerX] = TileType::Empty;
+    if (direction == 'W' && playerY > 0)
+        playerY--;
+    if (direction == 'S' && playerY < BOARD_SIZE - 1)
+        playerY++;
+    if (direction == 'A' && playerX > 0)
+        playerX--;
+    if (direction == 'D' && playerX < BOARD_SIZE - 1)
+        playerX++;
+    board[playerY][playerX] = TileType::Player;
+    moves++;
+}
+
 int main()
 {
     cout << "Welcome to this game..." << endl;
