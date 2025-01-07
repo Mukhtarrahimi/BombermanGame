@@ -111,7 +111,6 @@ void initializeBoard()
     }
 }
 
-// نمایش صفحه بازی
 void printBoard()
 {
     for (int y = 0; y < BOARD_SIZE; y++)
@@ -145,6 +144,9 @@ void printBoard()
         }
         cout << endl;
     }
+
+    // نمایش وضعیت بازیکن
+    cout << "Score: " << score << " | Moves: " << moves << " | Bombs Used: " << bombsUsed << endl;
 }
 
 // تولید عناصر بازی
@@ -192,8 +194,7 @@ void saveGame(const string &filename)
         cout << "Game saved successfully!" << endl;
     }
 }
-
-// بارگذاری بازی
+// تابع بارگذاری گیم
 void loadGame(const string &filename)
 {
     ifstream inFile(filename);
@@ -215,7 +216,9 @@ void loadGame(const string &filename)
     }
     else
     {
-        cout << "Failed to load the game. File not found." << endl;
+        cout << "Invalid save file or file not found. Starting a new game.\n";
+        initializeBoard();
+        generateGameElements();
     }
 }
 
@@ -223,6 +226,9 @@ void loadGame(const string &filename)
 void movePlayer(char direction)
 {
     board[playerY][playerX] = TileType::Empty;
+
+    int oldX = playerX, oldY = playerY; // موقعیت قبلی بازیکن
+
     if (direction == 'W' && playerY > 0)
         playerY--;
     if (direction == 'S' && playerY < BOARD_SIZE - 1)
@@ -231,6 +237,15 @@ void movePlayer(char direction)
         playerX--;
     if (direction == 'D' && playerX < BOARD_SIZE - 1)
         playerX++;
+
+    // اگر به دیوار برخورد کند
+    if (board[playerY][playerX] == TileType::Concrete)
+    {
+        cout << "You hit a wall!\n";
+        playerX = oldX;
+        playerY = oldY;
+    }
+
     board[playerY][playerX] = TileType::Player;
     moves++;
 }
@@ -332,62 +347,6 @@ void adjustGameForDifficulty()
     board[playerY][playerX] = TileType::Player;
 }
 
-// شروع بازی: ثبت زمان شروع
-void startGame()
-{
-    gameStartTime = steady_clock::now(); // ثبت زمان شروع بازی
-
-    initializeBoard();
-    generateGameElements();
-    while (isRunning)
-    {
-        printBoard();
-        cout << "Enter command (WASD to move, B to place bomb, Q to quit): ";
-        char command;
-        cin >> command;
-        if (command == 'Q')
-        {
-            isRunning = false;
-        }
-        else if (command == 'B')
-        {
-            if (bombCount < MAX_BOMBS)
-            {
-                bombs[bombCount] = Bomb(playerX, playerY);
-                bombCount++;
-                bombsUsed++;
-            }
-            else
-            {
-                cout << "Maximum number of bombs reached!\n";
-            }
-        }
-        else
-        {
-            movePlayer(command);
-        }
-
-        // به‌روزرسانی بمب‌ها
-        for (int i = 0; i < bombCount; i++)
-        {
-            bombs[i].move();
-        }
-
-        // بررسی شرایط اتمام بازی (مثلاً رسیدن به درب خروج)
-        if (board[playerY][playerX] == TileType::Exit)
-        {
-            cout << "Congratulations! You reached the exit.\n";
-            isRunning = false;
-        }
-    }
-
-    // ثبت زمان پایان بازی
-    gameEndTime = steady_clock::now();
-
-    // محاسبه امتیاز
-    calculateScore();
-}
-
 // محاسبه امتیاز
 void calculateScore()
 {
@@ -425,6 +384,75 @@ void showScoreboard()
     }
 }
 
+// شروع بازی: ثبت زمان شروع
+void startGame()
+{
+    gameStartTime = steady_clock::now(); // ثبت زمان شروع بازی
+
+    initializeBoard();
+    generateGameElements();
+    while (isRunning)
+    {
+        printBoard();
+        cout << "Enter command (WASD to move, B to place bomb, Q to quit, M for menu): ";
+        char command;
+        cin >> command;
+
+        if (command == 'Q')
+        {
+            isRunning = false;
+        }
+        else if (command == 'M') // بازگشت به منو
+        {
+            isRunning = false;
+            cout << "Returning to main menu...\n";
+            return;
+        }
+        else if (command == 'B')
+        {
+            if (bombCount < MAX_BOMBS)
+            {
+                bombs[bombCount] = Bomb(playerX, playerY);
+                bombCount++;
+                bombsUsed++;
+            }
+            else
+            {
+                cout << "Maximum number of bombs reached!\n";
+            }
+        }
+        else
+        {
+            movePlayer(command);
+        }
+
+        // به‌روزرسانی بمب‌ها
+        for (int i = 0; i < bombCount; i++)
+        {
+            bombs[i].move();
+        }
+
+        // بررسی شرایط اتمام بازی (مثلاً رسیدن به درب خروج)
+        if (board[playerY][playerX] == TileType::Exit)
+        {
+            cout << "Congratulations! You reached the exit.\n";
+            isRunning = false;
+        }
+    }
+
+    // نمایش پیام پایان بازی
+    if (!isRunning && board[playerY][playerX] != TileType::Exit)
+    {
+        cout << "Game over. You failed to reach the exit.\n";
+    }
+
+    // ثبت زمان پایان بازی
+    gameEndTime = steady_clock::now();
+
+    // محاسبه امتیاز
+    calculateScore();
+}
+
 // برنامه اصلی
 int main()
 {
@@ -433,6 +461,15 @@ int main()
         showMenu();
         int choice;
         cin >> choice;
+
+        if (cin.fail() || choice < 1 || choice > 6)
+        {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid choice. Please enter a number between 1 and 6.\n";
+            continue;
+        }
+
         switch (choice)
         {
         case 1:
