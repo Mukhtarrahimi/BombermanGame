@@ -22,6 +22,7 @@ enum class TileType
     Bomb
 };
 
+// مهارت های بازیکن
 enum class SkillType
 {
     None,
@@ -76,7 +77,7 @@ struct Bomb
         }
     }
 
-    void explode()
+    void explode() // تابع انفجار بمب
     {
         cout << "Bomb exploded at (" << x << ", " << y << ")" << endl;
         for (int i = -explosionRadius; i <= explosionRadius; i++)
@@ -120,7 +121,7 @@ void printBoard()
             switch (board[y][x])
             {
             case TileType::Empty:
-                cout << " . ";
+                cout << " - ";
                 break;
             case TileType::Concrete:
                 cout << " XX ";
@@ -229,13 +230,13 @@ void movePlayer(char direction)
 
     int oldX = playerX, oldY = playerY; // موقعیت قبلی بازیکن
 
-    if (direction == 'W' && playerY > 0)
+    if (direction == 'W' || direction == 'w' && playerY > 0)
         playerY--;
-    if (direction == 'S' && playerY < BOARD_SIZE - 1)
+    if (direction == 'S' || direction == 's' && playerY < BOARD_SIZE - 1)
         playerY++;
-    if (direction == 'A' && playerX > 0)
+    if (direction == 'A' || direction == 'a' && playerX > 0)
         playerX--;
-    if (direction == 'D' && playerX < BOARD_SIZE - 1)
+    if (direction == 'D' || direction == 'd' && playerX < BOARD_SIZE - 1)
         playerX++;
 
     // اگر به دیوار برخورد کند
@@ -493,3 +494,4 @@ int main()
     }
     return 0;
 }
+
