@@ -100,6 +100,49 @@ struct Bomb
 Bomb bombs[MAX_BOMBS];
 int bombCount = 0;
 
+// تابع قرار دادن بمب
+void placeBomb()
+{
+    if (bombCount >= MAX_BOMBS) // اگر تعداد بمب‌ها به حد مجاز رسید
+    {
+        cout << "Maximum number of bombs reached!\n";
+        return;
+    }
+
+    // تلاش برای پیدا کردن مکان مناسب برای بمب
+    int x = playerX, y = playerY; // به طور پیش فرض در موقعیت بازیکن قرار می‌گیرد
+    bool validPosition = false;
+
+    // تلاش برای پیدا کردن موقعیت مناسب برای بمب
+    for (int attempts = 0; attempts < 10; attempts++) // تلاش برای 10 موقعیت مختلف
+    {
+        // ایجاد یک موقعیت تصادفی برای بمب
+        x = rand() % BOARD_SIZE;
+        y = rand() % BOARD_SIZE;
+
+        // بررسی اینکه این مکان خالی باشد و دیوار نداشته باشد
+        if (board[y][x] == TileType::Empty)
+        {
+            validPosition = true;
+            break;
+        }
+    }
+
+    // اگر مکان مناسب پیدا کردیم، بمب را در آن قرار می‌دهیم
+    if (validPosition)
+    {
+        bombs[bombCount] = Bomb(x, y);
+        bombCount++;
+        bombsUsed++;
+        board[y][x] = TileType::Bomb; // نمایش بمب در صفحه بازی
+        cout << "Bomb placed at (" << x << ", " << y << ")\n";
+    }
+    else
+    {
+        cout << "No suitable position for bomb found. Try again.\n";
+    }
+}
+
 // مقداردهی اولیه صفحه بازی
 void initializeBoard()
 {
@@ -409,18 +452,9 @@ void startGame()
             cout << "Returning to main menu...\n";
             return;
         }
-        else if (command == 'B')
+        else if (command == 'B') // اینجا اضافه کردن کد
         {
-            if (bombCount < MAX_BOMBS)
-            {
-                bombs[bombCount] = Bomb(playerX, playerY);
-                bombCount++;
-                bombsUsed++;
-            }
-            else
-            {
-                cout << "Maximum number of bombs reached!\n";
-            }
+            placeBomb(); // فراخوانی تابع placeBomb
         }
         else
         {
