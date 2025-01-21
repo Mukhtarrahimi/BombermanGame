@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <chrono>
+#include <windows.h> // برای استفاده از SetConsoleCursorPosition
 
 using namespace std;
 using namespace std::chrono;
@@ -93,6 +94,15 @@ struct Bomb
 
 Bomb bombs[maxBomb];
 int bombCount = 0;
+
+// تابع gotoXY برای حرکت مکان نما به مختصات مشخص
+void gotoXY(int x, int y)
+{
+    COORD coord;
+    coord.X = x;
+    coord.Y = y;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
 
 void placeBomb()
 {
