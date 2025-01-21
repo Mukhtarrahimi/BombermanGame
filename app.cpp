@@ -351,24 +351,28 @@ void adjustGameForDifficulty()
 
     initializeBoard();
 
-    int enemyCount, brickCount;
+    int enemyCount, brickCount, concreteCount;
     if (currentDifficulty == Difficulty::Easy)
     {
         enemyCount = boardSize * 2;
         brickCount = boardSize * 3;
+        concreteCount = 6;
     }
     else if (currentDifficulty == Difficulty::Medium)
     {
         enemyCount = boardSize * 3;
         brickCount = boardSize * 4;
+        concreteCount = 9; // تعداد Concrete در سطح Medium
     }
     else
     {
         enemyCount = boardSize * 4;
         brickCount = boardSize * 5;
+        concreteCount = 12; 
     }
 
     srand(time(0));
+
     for (int i = 0; i < brickCount; i++)
     {
         int x = rand() % boardSize;
@@ -376,6 +380,7 @@ void adjustGameForDifficulty()
         if (board[y][x] == TileType::Empty)
             board[y][x] = TileType::Brick;
     }
+
     for (int i = 0; i < enemyCount; i++)
     {
         int x = rand() % boardSize;
@@ -384,7 +389,20 @@ void adjustGameForDifficulty()
             board[y][x] = TileType::Enemy;
     }
 
+    int placedConcreteCount = 0;
+    while (placedConcreteCount < concreteCount)
+    {
+        int x = rand() % boardSize;
+        int y = rand() % boardSize;
+        if (board[y][x] == TileType::Empty)
+        {
+            board[y][x] = TileType::Concrete;
+            placedConcreteCount++;
+        }
+    }
+
     board[boardSize - 1][boardSize - 1] = TileType::Exit;
+
     board[playerY][playerX] = TileType::Player;
 }
 
