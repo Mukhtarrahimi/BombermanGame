@@ -137,7 +137,7 @@ void placeBomb()
         bombs[bombCount] = Bomb(x, y);
         bombCount++;
         bombsUsed++;
-        board[y][x] = TileType::Bomb;
+        board[y][x] = TileType::Bomb; // اینجا بمب در مکان مورد نظر قرار می‌گیرد
         cout << "Bomb placed at (" << x << ", " << y << ")\n";
     }
     else
@@ -302,6 +302,13 @@ void movePlayer(char direction)
         playerX--;
     if ((direction == 'D' || direction == 'd') && playerX < boardSize - 1)
         playerX++;
+
+    if (board[playerY][playerX] == TileType::Enemy)
+    {
+        cout << "You encountered an enemy!\n";
+        score += 100;
+        board[playerY][playerX] = TileType::Empty;
+    }
 
     if (board[playerY][playerX] == TileType::Concrete)
     {
