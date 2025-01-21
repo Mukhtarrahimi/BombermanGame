@@ -3,14 +3,13 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
-#include <chrono> // برای محاسبه زمان
+#include <chrono>
 
 using namespace std;
-using namespace std::chrono; // استفاده از کلاس‌های زمان
-// متغیرهای زمان‌بندی
+using namespace std::chrono;
+
 steady_clock::time_point gameStartTime, gameEndTime;
 
-// انواع عناصر بازی
 enum class TileType
 {
     Empty,
@@ -22,7 +21,6 @@ enum class TileType
     Bomb
 };
 
-// مهارت های بازیکن
 enum class SkillType
 {
     None,
@@ -30,7 +28,6 @@ enum class SkillType
     ExplosionRadius
 };
 
-// متغیرهای درجه سختی
 enum class Difficulty
 {
     Easy,
@@ -40,12 +37,10 @@ enum class Difficulty
 
 Difficulty currentDifficulty = Difficulty::Medium;
 
-// ثابت‌های بازی
-const int BOARD_SIZE = 10;
-const int MAX_BOMBS = 10;
+const int boardSize = 10;
+const int maxBomb = 10;
 
-// متغیرهای عمومی
-TileType board[BOARD_SIZE][BOARD_SIZE];
+TileType board[boardSize][boardSize];
 int playerX = 0, playerY = 0;
 int score = 0;
 int moves = 0;
@@ -55,13 +50,12 @@ SkillType currentSkill = SkillType::None;
 int explosionRadius = 1;
 string playerName;
 
-// ساختار بمب
 struct Bomb
 {
     int x, y;
     int remainingMoves;
 
-    Bomb() : x(-1), y(-1), remainingMoves(0) {} // مکان پیش فرض بمب خارج از صفه
+    Bomb() : x(-1), y(-1), remainingMoves(0) {}
 
     Bomb(int x, int y) : x(x), y(y), remainingMoves(2) {}
 
@@ -77,7 +71,7 @@ struct Bomb
         }
     }
 
-    void explode() // تابع انفجار بمب
+    void explode()
     {
         cout << "Bomb exploded at (" << x << ", " << y << ")" << endl;
         for (int i = -explosionRadius; i <= explosionRadius; i++)
@@ -85,7 +79,7 @@ struct Bomb
             for (int j = -explosionRadius; j <= explosionRadius; j++)
             {
                 int nx = x + i, ny = y + j;
-                if (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE)
+                if (nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize)
                 {
                     if (board[ny][nx] == TileType::Brick || board[ny][nx] == TileType::Enemy)
                     {
@@ -97,30 +91,25 @@ struct Bomb
     }
 };
 
-Bomb bombs[MAX_BOMBS];
+Bomb bombs[maxBomb];
 int bombCount = 0;
 
-// تابع قرار دادن بمب
 void placeBomb()
 {
-    if (bombCount >= MAX_BOMBS) // اگر تعداد بمب‌ها به حد مجاز رسید
+    if (bombCount >= maxBomb)
     {
         cout << "Maximum number of bombs reached!\n";
         return;
     }
 
-    // تلاش برای پیدا کردن مکان مناسب برای بمب
-    int x = playerX, y = playerY; // به طور پیش فرض در موقعیت بازیکن قرار می‌گیرد
+    int x = playerX, y = playerY;
     bool validPosition = false;
 
-    // تلاش برای پیدا کردن موقعیت مناسب برای بمب
-    for (int attempts = 0; attempts < 10; attempts++) // تلاش برای 10 موقعیت مختلف
+    for (int attempts = 0; attempts < 10; attempts++)
     {
-        // ایجاد یک موقعیت تصادفی برای بمب
-        x = rand() % BOARD_SIZE;
-        y = rand() % BOARD_SIZE;
+        x = rand() % boardSize;
+        y = rand() % boardSize;
 
-        // بررسی اینکه این مکان خالی باشد و دیوار نداشته باشد
         if (board[y][x] == TileType::Empty)
         {
             validPosition = true;
@@ -128,13 +117,12 @@ void placeBomb()
         }
     }
 
-    // اگر مکان مناسب پیدا کردیم، بمب را در آن قرار می‌دهیم
     if (validPosition)
     {
         bombs[bombCount] = Bomb(x, y);
         bombCount++;
         bombsUsed++;
-        board[y][x] = TileType::Bomb; // نمایش بمب در صفحه بازی
+        board[y][x] = TileType::Bomb;
         cout << "Bomb placed at (" << x << ", " << y << ")\n";
     }
     else
@@ -143,12 +131,11 @@ void placeBomb()
     }
 }
 
-// مقداردهی اولیه صفحه بازی
 void initializeBoard()
 {
-    for (int y = 0; y < BOARD_SIZE; y++)
+    for (int y = 0; y < boardSize; y++)
     {
-        for (int x = 0; x < BOARD_SIZE; x++)
+        for (int x = 0; x < boardSize; x++)
         {
             board[y][x] = TileType::Empty;
         }
@@ -157,9 +144,9 @@ void initializeBoard()
 
 void printBoard()
 {
-    for (int y = 0; y < BOARD_SIZE; y++)
+    for (int y = 0; y < boardSize; y++)
     {
-        for (int x = 0; x < BOARD_SIZE; x++)
+        for (int x = 0; x < boardSize; x++)
         {
             switch (board[y][x])
             {
@@ -189,36 +176,33 @@ void printBoard()
         cout << endl;
     }
 
-    // نمایش وضعیت بازیکن
     cout << "Score: " << score << " | Moves: " << moves << " | Bombs Used: " << bombsUsed << endl;
 }
 
-// تولید عناصر بازی
 void generateGameElements()
 {
     srand(time(0));
-    for (int i = 0; i < BOARD_SIZE / 2; i++)
+    for (int i = 0; i < boardSize / 2; i++)
     {
-        int x = rand() % BOARD_SIZE;
-        int y = rand() % BOARD_SIZE;
+        int x = rand() % boardSize;
+        int y = rand() % boardSize;
         if (board[y][x] == TileType::Empty)
             board[y][x] = TileType::Brick;
 
-        x = rand() % BOARD_SIZE;
-        y = rand() % BOARD_SIZE;
+        x = rand() % boardSize;
+        y = rand() % boardSize;
         if (board[y][x] == TileType::Empty)
             board[y][x] = TileType::Enemy;
 
-        x = rand() % BOARD_SIZE;
-        y = rand() % BOARD_SIZE;
+        x = rand() % boardSize;
+        y = rand() % boardSize;
         if (board[y][x] == TileType::Empty)
             board[y][x] = TileType::Concrete;
     }
-    board[BOARD_SIZE - 1][BOARD_SIZE - 1] = TileType::Exit;
+    board[boardSize - 1][boardSize - 1] = TileType::Exit;
     board[playerY][playerX] = TileType::Player;
 }
 
-// ذخیره بازی
 void saveGame(const string &filename)
 {
     ofstream outFile(filename);
@@ -226,19 +210,27 @@ void saveGame(const string &filename)
     {
         outFile << playerX << " " << playerY << endl;
         outFile << score << " " << moves << " " << bombsUsed << endl;
-        for (int y = 0; y < BOARD_SIZE; y++)
+        for (int y = 0; y < boardSize; y++)
         {
-            for (int x = 0; x < BOARD_SIZE; x++)
+            for (int x = 0; x < boardSize; x++)
             {
                 outFile << static_cast<int>(board[y][x]) << " ";
             }
             outFile << endl;
         }
+
+        // Save bombs
+        outFile << bombCount << endl;
+        for (int i = 0; i < bombCount; i++)
+        {
+            outFile << bombs[i].x << " " << bombs[i].y << " " << bombs[i].remainingMoves << endl;
+        }
+
         outFile.close();
         cout << "Game saved successfully!" << endl;
     }
 }
-// تابع بارگذاری گیم
+
 void loadGame(const string &filename)
 {
     ifstream inFile(filename);
@@ -246,15 +238,23 @@ void loadGame(const string &filename)
     {
         inFile >> playerX >> playerY;
         inFile >> score >> moves >> bombsUsed;
-        for (int y = 0; y < BOARD_SIZE; y++)
+        for (int y = 0; y < boardSize; y++)
         {
-            for (int x = 0; x < BOARD_SIZE; x++)
+            for (int x = 0; x < boardSize; x++)
             {
                 int temp;
                 inFile >> temp;
                 board[y][x] = static_cast<TileType>(temp);
             }
         }
+
+        // Load bombs
+        inFile >> bombCount;
+        for (int i = 0; i < bombCount; i++)
+        {
+            inFile >> bombs[i].x >> bombs[i].y >> bombs[i].remainingMoves;
+        }
+
         inFile.close();
         cout << "Game loaded successfully!" << endl;
     }
@@ -266,23 +266,21 @@ void loadGame(const string &filename)
     }
 }
 
-// حرکت بازیکن
 void movePlayer(char direction)
 {
     board[playerY][playerX] = TileType::Empty;
 
-    int oldX = playerX, oldY = playerY; // موقعیت قبلی بازیکن
+    int oldX = playerX, oldY = playerY;
 
-    if (direction == 'W' || direction == 'w' && playerY > 0)
+    if ((direction == 'W' || direction == 'w') && playerY > 0)
         playerY--;
-    if (direction == 'S' || direction == 's' && playerY < BOARD_SIZE - 1)
+    if ((direction == 'S' || direction == 's') && playerY < boardSize - 1)
         playerY++;
-    if (direction == 'A' || direction == 'a' && playerX > 0)
+    if ((direction == 'A' || direction == 'a') && playerX > 0)
         playerX--;
-    if (direction == 'D' || direction == 'd' && playerX < BOARD_SIZE - 1)
+    if ((direction == 'D' || direction == 'd') && playerX < boardSize - 1)
         playerX++;
 
-    // اگر به دیوار برخورد کند
     if (board[playerY][playerX] == TileType::Concrete)
     {
         cout << "You hit a wall!\n";
@@ -294,46 +292,19 @@ void movePlayer(char direction)
     moves++;
 }
 
-// منوی اصلی
 void showMenu()
 {
     cout << "\n1. Start Game\n2. Load Game\n3. Set Difficulty\n4. Guide\n5. Scoreboard\n6. Exit\n";
     cout << "Enter your choice: ";
 }
 
-// راهنمای بازی
 void showGuide()
 {
     cout << "Welcome to the game!\n";
     cout << "Move with W, A, S, D.\nPlace bombs with B.\n";
     cout << "Reach the exit to win.\n";
-    cout << "Team: Your Team Name\n";
 }
 
-// تنظیم درجه سختی
-void setDifficulty()
-{
-    cout << "Choose Difficulty:\n1. Easy\n2. Medium\n3. Hard\n";
-    int choice;
-    cin >> choice;
-    if (choice == 1)
-    {
-        currentDifficulty = Difficulty::Easy;
-        cout << "Easy selected.\n";
-    }
-    else if (choice == 2)
-    {
-        currentDifficulty = Difficulty::Medium;
-        cout << "Medium selected.\n";
-    }
-    else if (choice == 3)
-    {
-        currentDifficulty = Difficulty::Hard;
-        cout << "Hard selected.\n";
-    }
-}
-
-// تنظیم اندازه صفحه و تعداد عناصر بر اساس درجه سختی
 void adjustGameForDifficulty()
 {
     switch (currentDifficulty)
@@ -349,58 +320,53 @@ void adjustGameForDifficulty()
         break;
     }
 
-    // بازسازی صفحه بازی با تنظیمات جدید
     initializeBoard();
 
-    // تنظیم تعداد دشمنان و بلوک‌ها
     int enemyCount, brickCount;
     if (currentDifficulty == Difficulty::Easy)
     {
-        enemyCount = 3;
-        brickCount = 5;
+        enemyCount = boardSize * 2;
+        brickCount = boardSize * 3;
     }
     else if (currentDifficulty == Difficulty::Medium)
     {
-        enemyCount = 5;
-        brickCount = 8;
+        enemyCount = boardSize * 3;
+        brickCount = boardSize * 4;
     }
-    else // Hard
+    else
     {
-        enemyCount = 8;
-        brickCount = 12;
+        enemyCount = boardSize * 4;
+        brickCount = boardSize * 5;
     }
 
-    // تولید عناصر بازی با تنظیمات جدید
     srand(time(0));
     for (int i = 0; i < brickCount; i++)
     {
-        int x = rand() % BOARD_SIZE;
-        int y = rand() % BOARD_SIZE;
+        int x = rand() % boardSize;
+        int y = rand() % boardSize;
         if (board[y][x] == TileType::Empty)
             board[y][x] = TileType::Brick;
     }
     for (int i = 0; i < enemyCount; i++)
     {
-        int x = rand() % BOARD_SIZE;
-        int y = rand() % BOARD_SIZE;
+        int x = rand() % boardSize;
+        int y = rand() % boardSize;
         if (board[y][x] == TileType::Empty)
             board[y][x] = TileType::Enemy;
     }
 
-    board[BOARD_SIZE - 1][BOARD_SIZE - 1] = TileType::Exit;
+    board[boardSize - 1][boardSize - 1] = TileType::Exit;
     board[playerY][playerX] = TileType::Player;
 }
 
-// محاسبه امتیاز
 void calculateScore()
 {
-    double elapsedTime = duration_cast<seconds>(gameEndTime - gameStartTime).count(); // زمان سپری‌شده
-    const double WT = 0.5, WM = 0.3, WB = 0.2;                                        // ضرایب وزن
+    double elapsedTime = duration_cast<seconds>(gameEndTime - gameStartTime).count();
+    const double WT = 0.5, WM = 0.3, WB = 0.2;
     score = static_cast<int>(1000 / (1 + WT * elapsedTime + WM * moves + WB * bombsUsed));
     cout << "Game Over!\n";
     cout << "Your score: " << score << endl;
 
-    // ذخیره امتیاز در فایل
     ofstream outFile("scoreboard.txt", ios::app);
     if (outFile.is_open())
     {
@@ -409,7 +375,6 @@ void calculateScore()
     }
 }
 
-// جدول امتیازات
 void showScoreboard()
 {
     ifstream inFile("scoreboard.txt");
@@ -428,10 +393,9 @@ void showScoreboard()
     }
 }
 
-// شروع بازی: ثبت زمان شروع
 void startGame()
 {
-    gameStartTime = steady_clock::now(); // ثبت زمان شروع بازی
+    gameStartTime = steady_clock::now();
 
     initializeBoard();
     generateGameElements();
@@ -446,28 +410,26 @@ void startGame()
         {
             isRunning = false;
         }
-        else if (command == 'M') // بازگشت به منو
+        else if (command == 'M')
         {
             isRunning = false;
             cout << "Returning to main menu...\n";
             return;
         }
-        else if (command == 'B') // اینجا اضافه کردن کد
+        else if (command == 'B')
         {
-            placeBomb(); // فراخوانی تابع placeBomb
+            placeBomb();
         }
         else
         {
             movePlayer(command);
         }
 
-        // به‌روزرسانی بمب‌ها
         for (int i = 0; i < bombCount; i++)
         {
             bombs[i].move();
         }
 
-        // بررسی شرایط اتمام بازی (مثلاً رسیدن به درب خروج)
         if (board[playerY][playerX] == TileType::Exit)
         {
             cout << "Congratulations! You reached the exit.\n";
@@ -475,20 +437,16 @@ void startGame()
         }
     }
 
-    // نمایش پیام پایان بازی
     if (!isRunning && board[playerY][playerX] != TileType::Exit)
     {
         cout << "Game over. You failed to reach the exit.\n";
     }
 
-    // ثبت زمان پایان بازی
     gameEndTime = steady_clock::now();
 
-    // محاسبه امتیاز
     calculateScore();
 }
 
-// برنامه اصلی
 int main()
 {
     while (true)
@@ -514,7 +472,7 @@ int main()
             loadGame("savegame.txt");
             break;
         case 3:
-            setDifficulty();
+            adjustGameForDifficulty();
             break;
         case 4:
             showGuide();
@@ -528,4 +486,3 @@ int main()
     }
     return 0;
 }
-
