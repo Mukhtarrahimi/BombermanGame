@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <chrono>
-#include <windows.h> // برای استفاده از SetConsoleCursorPosition
+#include <windows.h> // برای استفاده از SetConsoleTextAttribute
 
 using namespace std;
 using namespace std::chrono;
@@ -95,13 +95,18 @@ struct Bomb
 Bomb bombs[maxBomb];
 int bombCount = 0;
 
-// تابع gotoXY برای حرکت مکان نما به مختصات مشخص
+// برای حرکت کرسر
 void gotoXY(int x, int y)
 {
     COORD coord;
     coord.X = x;
     coord.Y = y;
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+void setColor(int color)
+{
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
 }
 
 void placeBomb()
@@ -161,24 +166,31 @@ void printBoard()
             switch (board[y][x])
             {
             case TileType::Empty:
+                setColor(7); // White text for empty
                 cout << " - ";
                 break;
             case TileType::Concrete:
-                cout << " XX ";
+                setColor(8); // Dark gray text for concrete
+                cout << " ## ";
                 break;
             case TileType::Brick:
+                setColor(14); // Yellow for brick
                 cout << " -_ ";
                 break;
             case TileType::Player:
+                setColor(10); // Green for player
                 cout << " SS ";
                 break;
             case TileType::Enemy:
+                setColor(12); // Red for enemy
                 cout << " EE ";
                 break;
             case TileType::Exit:
+                setColor(11); // Cyan for exit
                 cout << " <> ";
                 break;
             case TileType::Bomb:
+                setColor(13); // Magenta for bomb
                 cout << " Bo ";
                 break;
             }
@@ -403,87 +415,88 @@ void showScoreboard()
     }
 }
 
-void startGame()
-{
-    gameStartTime = steady_clock::now();
-
-    initializeBoard();
-    generateGameElements();
-    while (isRunning)
-    {
-        printBoard();
-        cout << "Enter command (WASD to move, B to place bomb, Q to quit, M for menu): ";
-        char command;
-        cin >> command;
-
-        if (command == 'Q')
-        {
-            isRunning = false;
-        }
-        else if (command == 'M')
-        {
-            isRunning = false;
-            cout << "Returning to main menu...\n";
-            return;
-        }
-        else if (command == 'B')
-        {
-            placeBomb();
-        }
-        else
-        {
-            movePlayer(command);
-        }
-
-        for (int i = 0; i < bombCount; i++)
-        {
-            bombs[i].move();
-        }
-
-        if (board[playerY][playerX] == TileType::Exit)
-        {
-            cout << "Congratulations! You reached the exit.\n";
-            isRunning = false;
-        }
-    }
-
-    if (!isRunning && board[playerY][playerX] != TileType::Exit)
-    {
-        cout << "Game over. You failed to reach the exit.\n";
-    }
-
-    gameEndTime = steady_clock::now();
-
-    calculateScore();
-}
-
 int main()
 {
-    while (true)
+    cout << "Enter player name: ";
+    cin >> playerName;
+
+    int choice;
+    do
     {
         showMenu();
-        int choice;
         cin >> choice;
-
-        if (cin.fail() || choice < 1 || choice > 6)
-        {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid choice. Please enter a number between 1 and 6.\n";
-            continue;
-        }
 
         switch (choice)
         {
         case 1:
-            startGame();
+            // کدهای داخل تابع startGame را در اینجا قرار می‌دهیم
+            gameStartTime = steady_clock::now();
+            initializeBoard();
+            generateGameElements();
+            while (isRunning)
+            {
+                printBoard();
+                cout << "Enter command (WASD to move, B to place bomb, Q to quit, M for menu): ";
+                char command;
+                cin >> command;
+
+                if (command == 'Q')
+                {
+                    isRunning = false;
+                }
+                else if (command == 'M')
+                {
+                    isRunning = false;
+                    cout << "Returning to main menu...\n";
+                    return 0;
+                }
+                else if (command == 'B')
+                {
+                    placeBomb();
+                }
+                else
+                {
+                    movePlayer(command);
+                }
+
+                for (int i = 0; i < bombCount; i++)
+                {
+                    bombs[i].move();
+                }
+
+                if (board[playerY][playerX] == TileType::Exit)
+                {
+                    cout << "Congratulations! You reached the exit.\n";
+                    isRunning = false;
+                }
+            }
+
+            if (!isRunning && board[playerY][playerX] != TileType::Exit)
+            {
+                cout << "Game over. You failed to reach the exit.\n";
+            }
+
+            gameEndTime = steady_clock::now();
+            calculateScore();
             break;
+
         case 2:
-            loadGame("savegame.txt");
+            cout << "Enter save file name: ";
+            {
+                string filename;
+                cin >> filename;
+                loadGame(filename);
+            }
             break;
         case 3:
+        {
+            int diff;
+            cout << "Select difficulty (0: Easy, 1: Medium, 2: Hard): ";
+            cin >> diff;
+            currentDifficulty = static_cast<Difficulty>(diff);
             adjustGameForDifficulty();
-            break;
+        }
+        break;
         case 4:
             showGuide();
             break;
@@ -491,8 +504,13 @@ int main()
             showScoreboard();
             break;
         case 6:
-            return 0;
+            cout << "Exiting game...\n";
+            break;
+        default:
+            cout << "Invalid choice! Try again.\n";
+            break;
         }
-    }
+    } while (choice != 6);
+
     return 0;
 }
