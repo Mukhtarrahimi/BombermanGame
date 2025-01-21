@@ -11,7 +11,7 @@ using namespace std::chrono;
 
 steady_clock::time_point gameStartTime, gameEndTime;
 
-enum class TileType
+enum class Elements
 {
     Empty,
     Concrete,
@@ -41,7 +41,7 @@ Difficulty currentDifficulty = Difficulty::Medium;
 const int boardSize = 10;
 const int maxBomb = 10;
 
-TileType board[boardSize][boardSize];
+Elements board[boardSize][boardSize];
 int playerX = 0, playerY = 0;
 int score = 0;
 int moves = 0;
@@ -82,9 +82,9 @@ struct Bomb
                 int nx = x + i, ny = y + j;
                 if (nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize)
                 {
-                    if (board[ny][nx] == TileType::Brick || board[ny][nx] == TileType::Enemy)
+                    if (board[ny][nx] == Elements::Brick || board[ny][nx] == Elements::Enemy)
                     {
-                        board[ny][nx] = TileType::Empty;
+                        board[ny][nx] = Elements::Empty;
                     }
                 }
             }
@@ -94,15 +94,6 @@ struct Bomb
 
 Bomb bombs[maxBomb];
 int bombCount = 0;
-
-// برای حرکت کرسر
-void gotoXY(int x, int y)
-{
-    COORD coord;
-    coord.X = x;
-    coord.Y = y;
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-}
 
 void setColor(int color)
 {
@@ -125,7 +116,7 @@ void placeBomb()
         x = rand() % boardSize;
         y = rand() % boardSize;
 
-        if (board[y][x] == TileType::Empty)
+        if (board[y][x] == Elements::Empty)
         {
             validPosition = true;
             break;
@@ -137,7 +128,7 @@ void placeBomb()
         bombs[bombCount] = Bomb(x, y);
         bombCount++;
         bombsUsed++;
-        board[y][x] = TileType::Bomb; // اینجا بمب در مکان مورد نظر قرار می‌گیرد
+        board[y][x] = Elements::Bomb;
         cout << "Bomb placed at (" << x << ", " << y << ")\n";
     }
     else
@@ -152,7 +143,7 @@ void initializeBoard()
     {
         for (int x = 0; x < boardSize; x++)
         {
-            board[y][x] = TileType::Empty;
+            board[y][x] = Elements::Empty;
         }
     }
 }
@@ -165,31 +156,31 @@ void printBoard()
         {
             switch (board[y][x])
             {
-            case TileType::Empty:
+            case Elements::Empty:
                 setColor(7); // White text for empty
                 cout << " - ";
                 break;
-            case TileType::Concrete:
+            case Elements::Concrete:
                 setColor(8); // Dark gray text for concrete
                 cout << " ## ";
                 break;
-            case TileType::Brick:
+            case Elements::Brick:
                 setColor(14); // Yellow for brick
                 cout << " -_ ";
                 break;
-            case TileType::Player:
+            case Elements::Player:
                 setColor(10); // Green for player
                 cout << " SS ";
                 break;
-            case TileType::Enemy:
+            case Elements::Enemy:
                 setColor(12); // Red for enemy
                 cout << " EE ";
                 break;
-            case TileType::Exit:
+            case Elements::Exit:
                 setColor(11); // Cyan for exit
                 cout << " <> ";
                 break;
-            case TileType::Bomb:
+            case Elements::Bomb:
                 setColor(13); // Magenta for bomb
                 cout << " Bo ";
                 break;
@@ -208,21 +199,21 @@ void generateGameElements()
     {
         int x = rand() % boardSize;
         int y = rand() % boardSize;
-        if (board[y][x] == TileType::Empty)
-            board[y][x] = TileType::Brick;
+        if (board[y][x] == Elements::Empty)
+            board[y][x] = Elements::Brick;
 
         x = rand() % boardSize;
         y = rand() % boardSize;
-        if (board[y][x] == TileType::Empty)
-            board[y][x] = TileType::Enemy;
+        if (board[y][x] == Elements::Empty)
+            board[y][x] = Elements::Enemy;
 
         x = rand() % boardSize;
         y = rand() % boardSize;
-        if (board[y][x] == TileType::Empty)
-            board[y][x] = TileType::Concrete;
+        if (board[y][x] == Elements::Empty)
+            board[y][x] = Elements::Concrete;
     }
-    board[boardSize - 1][boardSize - 1] = TileType::Exit;
-    board[playerY][playerX] = TileType::Player;
+    board[boardSize - 1][boardSize - 1] = Elements::Exit;
+    board[playerY][playerX] = Elements::Player;
 }
 
 void saveGame(const string &filename)
@@ -241,7 +232,6 @@ void saveGame(const string &filename)
             outFile << endl;
         }
 
-        // Save bombs
         outFile << bombCount << endl;
         for (int i = 0; i < bombCount; i++)
         {
@@ -266,11 +256,10 @@ void loadGame(const string &filename)
             {
                 int temp;
                 inFile >> temp;
-                board[y][x] = static_cast<TileType>(temp);
+                board[y][x] = static_cast<Elements>(temp);
             }
         }
 
-        // Load bombs
         inFile >> bombCount;
         for (int i = 0; i < bombCount; i++)
         {
@@ -290,7 +279,7 @@ void loadGame(const string &filename)
 
 void movePlayer(char direction)
 {
-    board[playerY][playerX] = TileType::Empty;
+    board[playerY][playerX] = Elements::Empty;
 
     int oldX = playerX, oldY = playerY;
 
@@ -303,21 +292,21 @@ void movePlayer(char direction)
     if ((direction == 'D' || direction == 'd') && playerX < boardSize - 1)
         playerX++;
 
-    if (board[playerY][playerX] == TileType::Enemy)
+    if (board[playerY][playerX] == Elements::Enemy)
     {
         cout << "You encountered an enemy!\n";
         score += 100;
-        board[playerY][playerX] = TileType::Empty;
+        board[playerY][playerX] = Elements::Empty;
     }
 
-    if (board[playerY][playerX] == TileType::Concrete)
+    if (board[playerY][playerX] == Elements::Concrete)
     {
         cout << "You hit a wall!\n";
         playerX = oldX;
         playerY = oldY;
     }
 
-    board[playerY][playerX] = TileType::Player;
+    board[playerY][playerX] = Elements::Player;
     moves++;
 }
 
@@ -362,13 +351,13 @@ void adjustGameForDifficulty()
     {
         enemyCount = boardSize * 3;
         brickCount = boardSize * 4;
-        concreteCount = 9; // تعداد Concrete در سطح Medium
+        concreteCount = 9;
     }
     else
     {
         enemyCount = boardSize * 4;
         brickCount = boardSize * 5;
-        concreteCount = 12; 
+        concreteCount = 12;
     }
 
     srand(time(0));
@@ -377,16 +366,16 @@ void adjustGameForDifficulty()
     {
         int x = rand() % boardSize;
         int y = rand() % boardSize;
-        if (board[y][x] == TileType::Empty)
-            board[y][x] = TileType::Brick;
+        if (board[y][x] == Elements::Empty)
+            board[y][x] = Elements::Brick;
     }
 
     for (int i = 0; i < enemyCount; i++)
     {
         int x = rand() % boardSize;
         int y = rand() % boardSize;
-        if (board[y][x] == TileType::Empty)
-            board[y][x] = TileType::Enemy;
+        if (board[y][x] == Elements::Empty)
+            board[y][x] = Elements::Enemy;
     }
 
     int placedConcreteCount = 0;
@@ -394,16 +383,16 @@ void adjustGameForDifficulty()
     {
         int x = rand() % boardSize;
         int y = rand() % boardSize;
-        if (board[y][x] == TileType::Empty)
+        if (board[y][x] == Elements::Empty)
         {
-            board[y][x] = TileType::Concrete;
+            board[y][x] = Elements::Concrete;
             placedConcreteCount++;
         }
     }
 
-    board[boardSize - 1][boardSize - 1] = TileType::Exit;
+    board[boardSize - 1][boardSize - 1] = Elements::Exit;
 
-    board[playerY][playerX] = TileType::Player;
+    board[playerY][playerX] = Elements::Player;
 }
 
 void calculateScore()
@@ -454,74 +443,31 @@ int main()
         switch (choice)
         {
         case 1:
-            // کدهای داخل تابع startGame را در اینجا قرار می‌دهیم
             gameStartTime = steady_clock::now();
             initializeBoard();
             generateGameElements();
-            while (isRunning)
-            {
-                printBoard();
-                cout << "Enter command (WASD to move, B to place bomb, Q to quit, M for menu): ";
-                char command;
-                cin >> command;
-
-                if (command == 'Q')
-                {
-                    isRunning = false;
-                }
-                else if (command == 'M')
-                {
-                    isRunning = false;
-                    cout << "Returning to main menu...\n";
-                    return 0;
-                }
-                else if (command == 'B')
-                {
-                    placeBomb();
-                }
-                else
-                {
-                    movePlayer(command);
-                }
-
-                for (int i = 0; i < bombCount; i++)
-                {
-                    bombs[i].move();
-                }
-
-                if (board[playerY][playerX] == TileType::Exit)
-                {
-                    cout << "Congratulations! You reached the exit.\n";
-                    isRunning = false;
-                }
-            }
-
-            if (!isRunning && board[playerY][playerX] != TileType::Exit)
-            {
-                cout << "Game over. You failed to reach the exit.\n";
-            }
-
-            gameEndTime = steady_clock::now();
-            calculateScore();
+            isRunning = true;
             break;
-
         case 2:
             cout << "Enter save file name: ";
             {
                 string filename;
                 cin >> filename;
                 loadGame(filename);
+                isRunning = true;
             }
             break;
         case 3:
-        {
-            int diff;
-            cout << "Select difficulty (0: Easy, 1: Medium, 2: Hard): ";
-            cin >> diff;
-            currentDifficulty = static_cast<Difficulty>(diff);
-            adjustGameForDifficulty();
-        }
-        break;
+            cout << "Select difficulty:\n1. Easy\n2. Medium\n3. Hard\n";
+            int difficultyChoice;
+            cin >> difficultyChoice;
+            if (difficultyChoice == 1)
+                currentDifficulty = Difficulty::Easy;
+            else if (difficultyChoice == 2)
+                currentDifficulty = Difficulty::Medium;
+            else
+                currentDifficulty = Difficulty::Hard;
+            break;
         case 4:
             showGuide();
             break;
@@ -529,12 +475,49 @@ int main()
             showScoreboard();
             break;
         case 6:
-            cout << "Exiting game...\n";
+            isRunning = false;
             break;
         default:
-            cout << "Invalid choice! Try again.\n";
-            break;
+            cout << "Invalid choice. Try again.\n";
         }
+
+        if (isRunning)
+        {
+            while (isRunning)
+            {
+                printBoard();
+                char move;
+                cout << "Enter move (W/A/S/D): ";
+                cin >> move;
+
+                if (move == 'Q' || move == 'q')
+                {
+                    cout << "Saving game...\n";
+                    cout << "Enter save file name: ";
+                    string filename;
+                    cin >> filename;
+                    saveGame(filename);
+                    break;
+                }
+
+                movePlayer(move);
+
+                // Move bombs
+                for (int i = 0; i < bombCount; i++)
+                {
+                    bombs[i].move();
+                }
+
+                // Check if the game has ended
+                if (board[playerY][playerX] == Elements::Exit)
+                {
+                    gameEndTime = steady_clock::now();
+                    calculateScore();
+                    break;
+                }
+            }
+        }
+
     } while (choice != 6);
 
     return 0;
