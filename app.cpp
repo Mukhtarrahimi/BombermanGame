@@ -22,51 +22,12 @@ bool isRunning = true;
 int currentSkill = 0;
 int explosionRadius = 1;
 string playerName;
-int bombs[maxBomb][3]; // [x, y, remainingMoves]
+int bombs[maxBomb][3];
 int bombCount = 0;
 
 void setColor(int color)
 {
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
-}
-
-void placeBomb()
-{
-    if (bombCount >= maxBomb)
-    {
-        cout << "Maximum number of bombs reached!\n";
-        return;
-    }
-
-    int x = playerX, y = playerY;
-    bool validPosition = false;
-
-    for (int attempts = 0; attempts < 10; attempts++)
-    {
-        x = rand() % boardSize;
-        y = rand() % boardSize;
-
-        if (board[y][x] == 0)
-        {
-            validPosition = true;
-            break;
-        }
-    }
-
-    if (validPosition)
-    {
-        bombs[bombCount][0] = x;
-        bombs[bombCount][1] = y;
-        bombs[bombCount][2] = 2;
-        bombCount++;
-        bombsUsed++;
-        board[y][x] = 5;
-        cout << "Bomb placed at (" << x << ", " << y << ")\n";
-    }
-    else
-    {
-        cout << "No suitable position for bomb found. Try again.\n";
-    }
 }
 
 void initializeBoard()
@@ -134,25 +95,132 @@ void printBoard()
 void generateGameElements()
 {
     srand(time(0));
+
     for (int i = 0; i < boardSize / 2; i++)
     {
         int x = rand() % boardSize;
         int y = rand() % boardSize;
-        if (board[y][x] == 0)
-            board[y][x] = 2;
 
-        x = rand() % boardSize;
-        y = rand() % boardSize;
         if (board[y][x] == 0)
-            board[y][x] = 4;
-
-        x = rand() % boardSize;
-        y = rand() % boardSize;
-        if (board[y][x] == 0)
-            board[y][x] = 1;
+        {
+            int randomValue = rand() % 3;
+            if (randomValue == 0)
+                board[y][x] = 2;
+            else if (randomValue == 1)
+                board[y][x] = 4;
+            else
+                board[y][x] = 1;
+        }
     }
+
     board[boardSize - 1][boardSize - 1] = 6;
+
     board[playerY][playerX] = 3;
+}
+
+void setDifficulty()
+{
+    initializeBoard();
+
+    int enemyCount = 0;
+    int brickCount = 0;
+    int concreteCount = 0;
+
+    if (currentSkill == 1)
+    {
+        enemyCount = boardSize * 2;
+        brickCount = boardSize * 3;
+        concreteCount = 6;
+    }
+    else if (currentSkill == 2)
+    {
+        enemyCount = boardSize * 3;
+        brickCount = boardSize * 4;
+        concreteCount = 9;
+    }
+    else
+    {
+        enemyCount = boardSize * 4;
+        brickCount = boardSize * 5;
+        concreteCount = 12;
+    }
+
+    srand(time(0));
+
+    for (int i = 0; i < brickCount; i++)
+    {
+        int x = rand() % boardSize;
+        int y = rand() % boardSize;
+        if (board[y][x] == 0)
+        {
+            board[y][x] = 2;
+        }
+    }
+
+    for (int i = 0; i < enemyCount; i++)
+    {
+        int x = rand() % boardSize;
+        int y = rand() % boardSize;
+        if (board[y][x] == 0)
+        {
+            board[y][x] = 4;
+        }
+    }
+
+    int placedConcreteCount = 0;
+    while (placedConcreteCount < concreteCount)
+    {
+        int x = rand() % boardSize;
+        int y = rand() % boardSize;
+        if (board[y][x] == 0)
+        {
+            board[y][x] = 1;
+            placedConcreteCount++;
+        }
+    }
+
+    board[boardSize - 1][boardSize - 1] = 6;
+
+    board[playerY][playerX] = 3;
+}
+
+void placeBomb()
+{
+    if (bombCount >= maxBomb)
+    {
+        cout << "Maximum number of bombs" << endl;
+        return;
+    }
+
+    int x = playerX, y = playerY;
+    bool validPosition = false;
+
+    for (int attempts = 0; attempts < 10; attempts++)
+    {
+        x = rand() % boardSize;
+        y = rand() % boardSize;
+
+        if (board[y][x] == 0)
+        {
+            validPosition = true;
+            break;
+        }
+    }
+
+    if (validPosition)
+    {
+        bombs[bombCount][0] = x;
+        bombs[bombCount][1] = y;
+        bombs[bombCount][2] = 2;
+        bombCount++;
+        bombsUsed++;
+        board[y][x] = 5;
+        cout << "bomb placed (" << x << " : " << y << ")" << endl;
+    }
+    else
+    {
+        cout << "Cannot place bomb, try again" << endl;
+    }
 }
 
 void saveGame(const string &filename)
@@ -178,7 +246,7 @@ void saveGame(const string &filename)
         }
 
         outFile.close();
-        cout << "Game saved successfully!" << endl;
+        cout << "game saved successfully!" << endl;
     }
 }
 
@@ -208,7 +276,7 @@ void loadGame(const string &filename)
     }
     else
     {
-        cout << "Invalid save file or file not found. Starting a new game.\n";
+        cout << "Invalid save file or file not found. Starting a new game." << endl;
         initializeBoard();
         generateGameElements();
     }
@@ -231,14 +299,14 @@ void movePlayer(char direction)
 
     if (board[playerY][playerX] == 4)
     {
-        cout << "You encountered an enemy!\n";
+        cout << "You encountered an enemy!" << endl;
         score += 100;
         board[playerY][playerX] = 0;
     }
 
     if (board[playerY][playerX] == 1)
     {
-        cout << "You hit a wall!\n";
+        cout << "You hit a wall!" << endl;
         playerX = oldX;
         playerY = oldY;
     }
@@ -249,81 +317,31 @@ void movePlayer(char direction)
 
 void showMenu()
 {
-    cout << "\n1. Start Game\n2. Load Game\n3. Set Difficulty\n4. Guide\n5. Scoreboard\n6. Exit\n";
+    cout << "1. Start Game" << endl;
+    cout << "2. Load Game" << endl;
+    cout << "3. Set Difficulty" << endl;
+    cout << "4. Guide" << endl;
+    cout << "5. Scoreboard" << endl;
+    cout << "6. Exit" << endl;
     cout << "Enter your choice: ";
 }
 
 void showGuide()
 {
-    cout << "Welcome to the game!\n";
-    cout << "Move with W, A, S, D.\nPlace bombs with B.\n";
-    cout << "Reach the exit to win.\n";
+    cout << "Welcome to the game!" << endl;
+    cout << "Move with W, A, S, D." << endl;
+    cout << "Place bombs with B." << endl;
+    cout << "Reach the exit to win." << endl;
 }
 
-void adjustGameForDifficulty()
-{
-    initializeBoard();
 
-    int enemyCount, brickCount, concreteCount;
-    if (currentSkill == 1)
-    {
-        enemyCount = boardSize * 2;
-        brickCount = boardSize * 3;
-        concreteCount = 6;
-    }
-    else if (currentSkill == 2)
-    {
-        enemyCount = boardSize * 3;
-        brickCount = boardSize * 4;
-        concreteCount = 9;
-    }
-    else
-    {
-        enemyCount = boardSize * 4;
-        brickCount = boardSize * 5;
-        concreteCount = 12;
-    }
-
-    srand(time(0));
-
-    for (int i = 0; i < brickCount; i++)
-    {
-        int x = rand() % boardSize;
-        int y = rand() % boardSize;
-        if (board[y][x] == 0)
-            board[y][x] = 2;
-    }
-
-    for (int i = 0; i < enemyCount; i++)
-    {
-        int x = rand() % boardSize;
-        int y = rand() % boardSize;
-        if (board[y][x] == 0)
-            board[y][x] = 4;
-    }
-
-    int placedConcreteCount = 0;
-    while (placedConcreteCount < concreteCount)
-    {
-        int x = rand() % boardSize;
-        int y = rand() % boardSize;
-        if (board[y][x] == 0)
-        {
-            board[y][x] = 1;
-            placedConcreteCount++;
-        }
-    }
-
-    board[boardSize - 1][boardSize - 1] = 6;
-    board[playerY][playerX] = 3;
-}
 
 void calculateScore()
 {
     double elapsedTime = duration_cast<seconds>(gameEndTime - gameStartTime).count();
     const double WT = 0.5, WM = 0.3, WB = 0.2;
     score = static_cast<int>(1000 / (1 + WT * elapsedTime + WM * moves + WB * bombsUsed));
-    cout << "Game Over!\n";
+    cout << "Game Over!" << endl;
     cout << "Your score: " << score << endl;
 
     ofstream outFile("scoreboard.txt", ios::app);
@@ -348,7 +366,7 @@ void showScoreboard()
     }
     else
     {
-        cout << "No scores available.\n";
+        cout << "No scores available." << endl;
     }
 }
 
@@ -381,7 +399,10 @@ int main()
             }
             break;
         case 3:
-            cout << "Select difficulty:\n1. Easy\n2. Medium\n3. Hard\n";
+            cout << "Select difficulty:" << endl;
+            cout << "1. Easy" << endl;
+            cout << "2. Medium" << endl;
+            cout << "3. Hard" << endl;
             int difficultyChoice;
             cin >> difficultyChoice;
             if (difficultyChoice == 1)
@@ -401,7 +422,7 @@ int main()
             isRunning = false;
             break;
         default:
-            cout << "Invalid choice. Try again.\n";
+            cout << "Invalid choice. Try again." << endl;
         }
 
         if (isRunning)
@@ -415,7 +436,7 @@ int main()
 
                 if (move == 'Q' || move == 'q')
                 {
-                    cout << "Saving game...\n";
+                    cout << "Saving game..." << endl;
                     cout << "Enter save file name: ";
                     string filename;
                     cin >> filename;
@@ -431,8 +452,7 @@ int main()
                     bombs[i][2]--;
                     if (bombs[i][2] == 0)
                     {
-                        // Explode bomb
-                        cout << "Bomb exploded at (" << bombs[i][0] << ", " << bombs[i][1] << ")\n";
+                        cout << "Bomb exploded at (" << bombs[i][0] << ", " << bombs[i][1] << ")" << endl;
                         for (int j = -explosionRadius; j <= explosionRadius; j++)
                         {
                             for (int k = -explosionRadius; k <= explosionRadius; k++)
