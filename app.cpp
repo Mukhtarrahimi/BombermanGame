@@ -3,7 +3,6 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
-#include <windows.h>
 
 using namespace std;
 
@@ -20,11 +19,6 @@ int explosionRadius = 1;
 string playerName;
 int bombs[maxBomb][3];
 int bombCount = 0;
-
-void setColor(int color)
-{
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
-}
 
 void initializeBoard()
 {
@@ -50,31 +44,24 @@ void printBoard()
             switch (board[y][x])
             {
             case 0:
-                setColor(7);
                 cout << "--";
                 break;
             case 1:
-                setColor(8);
                 cout << "|##|";
                 break;
             case 2:
-                setColor(14);
                 cout << "|_-|";
                 break;
             case 3:
-                setColor(10);
                 cout << " SS| ";
                 break;
             case 4:
-                setColor(12);
                 cout << " |EE| ";
                 break;
             case 6:
-                setColor(11);
                 cout << " <> ";
                 break;
             case 5:
-                setColor(13);
                 cout << " Bo ";
                 break;
             }
@@ -433,6 +420,10 @@ int main()
                     saveGame(filename);
                     break;
                 }
+                if (move == 'B' || move == 'b')
+                {
+                    placeBomb(); // فراخوانی تابع برای قرار دادن بمب
+                }
 
                 movePlayer(move);
 
@@ -443,16 +434,25 @@ int main()
                     if (bombs[i][2] == 0)
                     {
                         cout << "Bomb exploded at (" << bombs[i][0] << ", " << bombs[i][1] << ")" << endl;
+
                         for (int j = -explosionRadius; j <= explosionRadius; j++)
                         {
                             for (int k = -explosionRadius; k <= explosionRadius; k++)
                             {
-                                int nx = bombs[i][0] + j, ny = bombs[i][1] + k;
+                                int nx = bombs[i][0] + j;
+                                int ny = bombs[i][1] + k;
+
                                 if (nx >= 0 && nx < boardSize && ny >= 0 && ny < boardSize)
                                 {
                                     if (board[ny][nx] == 2 || board[ny][nx] == 4)
                                     {
                                         board[ny][nx] = 0;
+
+                                        if (board[ny][nx] == 4)
+                                        {
+                                            cout << "An enemy has been destroyed!" << endl;
+                                            score += 100;
+                                        }
                                     }
                                 }
                             }
@@ -464,7 +464,7 @@ int main()
                 if (allEnemiesDestroyed() && board[playerY][playerX] == 6)
                 {
                     cout << "Game Over!" << endl;
-                    break;
+                    isRunning = false;
                 }
             }
         }
