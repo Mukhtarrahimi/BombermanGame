@@ -3,13 +3,9 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
-#include <chrono>
 #include <windows.h>
 
 using namespace std;
-using namespace std::chrono;
-
-steady_clock::time_point gameStartTime, gameEndTime;
 
 const int boardSize = 10;
 const int maxBomb = 10;
@@ -334,24 +330,6 @@ void showGuide()
     cout << "Reach the exit to win." << endl;
 }
 
-
-
-void calculateScore()
-{
-    double elapsedTime = duration_cast<seconds>(gameEndTime - gameStartTime).count();
-    const double WT = 0.5, WM = 0.3, WB = 0.2;
-    score = static_cast<int>(1000 / (1 + WT * elapsedTime + WM * moves + WB * bombsUsed));
-    cout << "Game Over!" << endl;
-    cout << "Your score: " << score << endl;
-
-    ofstream outFile("scoreboard.txt", ios::app);
-    if (outFile.is_open())
-    {
-        outFile << playerName << ": " << score << endl;
-        outFile.close();
-    }
-}
-
 void showScoreboard()
 {
     ifstream inFile("scoreboard.txt");
@@ -384,7 +362,6 @@ int main()
         switch (choice)
         {
         case 1:
-            gameStartTime = steady_clock::now();
             initializeBoard();
             generateGameElements();
             isRunning = true;
@@ -473,8 +450,7 @@ int main()
                 // Check if the game has ended
                 if (board[playerY][playerX] == 6)
                 {
-                    gameEndTime = steady_clock::now();
-                    calculateScore();
+                    cout << "Game Over!" << endl;
                     break;
                 }
             }
