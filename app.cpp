@@ -211,7 +211,7 @@ void placeBomb()
         bombCount++;
         bombsUsed++;
         board[y][x] = 5;
-        cout << "bomb placed (" << x << " : " << y << ")" << endl;
+        cout << "Bomb placed (" << x << " : " << y << ")" << endl;
     }
     else
     {
@@ -296,7 +296,7 @@ void movePlayer(char direction)
     if (board[playerY][playerX] == 4)
     {
         cout << "You encountered an enemy!" << endl;
-        score += 100;
+        score -= 50;
         board[playerY][playerX] = 0;
     }
 
@@ -346,6 +346,19 @@ void showScoreboard()
     {
         cout << "No scores available." << endl;
     }
+}
+
+bool allEnemiesDestroyed()
+{
+    for (int y = 0; y < boardSize; y++)
+    {
+        for (int x = 0; x < boardSize; x++)
+        {
+            if (board[y][x] == 4)
+                return false;
+        }
+    }
+    return true;
 }
 
 int main()
@@ -448,7 +461,7 @@ int main()
                 }
 
                 // Check if the game has ended
-                if (board[playerY][playerX] == 6)
+                if (allEnemiesDestroyed() && board[playerY][playerX] == 6)
                 {
                     cout << "Game Over!" << endl;
                     break;
